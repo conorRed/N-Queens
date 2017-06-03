@@ -17,16 +17,15 @@ public class Queen{
 			queens[j] = 0;
 		}
 		board = new int[NUM_QUEEN][NUM_QUEEN];
-		 
-		this.placeQueensBacktrack(n);
-/*		for(int j =0; j< NUM_QUEEN; j++){
-			this.makeSteepestMove(queens, j);
+		this.makeSteepestMove(queens);
+		for(int j =0;j<NUM_QUEEN;j++){
+			queens[j] = ((int)Math.random()*(NUM_QUEEN-1));
 		}
+		this.makeSteepestMove(queens);
+		//this.placeQueensBacktrack(n);
 		
-		printQueens();*/
 	}
-	
-	
+
 	public Queen(){
 		this(8); // default value
 	}
@@ -46,7 +45,7 @@ public class Queen{
 			if(canPlace(row,i)){
 				queens[row] =  i;
 				if(row == NUM_QUEEN-1){
-					printQueens();
+					printQueens(queens);
 				}
 				else{
 						backtrack(row+1);
@@ -56,10 +55,10 @@ public class Queen{
 		}
 	}
 
-	public void printQueens(){
+	public void printQueens(int[] q){
 		
 		for(int j =0;j<NUM_QUEEN;j++){
-					board[j][queens[j]] = 1;
+					board[j][q[j]] = 1;
 		}	
 		System.out.println();
 		for(int j =0;j<NUM_QUEEN;j++){
@@ -78,47 +77,50 @@ public class Queen{
 		 }
 	
 	}
-	private void makeSteepestMove(int[] q,int row){
-		int htobeat = getH(q,row);
-		int[] copy = new int[NUM_QUEEN];
+	private void makeSteepestMove(int[] q){
+		int[] copy = q;
 		HashMap<Integer,Integer> possibleMoves = new HashMap<Integer,Integer>();
 		int [] bestMoves = new int[NUM_QUEEN];
-		copy = q;
-		for(int col = 0; col<NUM_QUEEN;col++){
-			if(isIn(col,row,q))
-			continue;
-			copy[row] = col;
+		for(int row =0;row<NUM_QUEEN;row++){
+			int htobeat = getH(q,row);
+			possibleMoves.put(q[row], getH(copy,row));
+			for(int col =0;col<NUM_QUEEN;col++){
+				if(q[row] == col)
+					continue;
+				copy[row] = col;
+				possibleMoves.put(col, getH(copy,row));
+			}
+			Iterator<Entry<Integer, Integer>> iterator1 =  possibleMoves.entrySet().iterator();
+			Iterator<Entry<Integer, Integer>> iterator =  possibleMoves.entrySet().iterator();
+			while(iterator.hasNext()) {
+		    	  Integer pentry = (Integer)iterator.next().getValue();
+		    	  if(pentry < htobeat){
+						htobeat = pentry;
+					}
+		      }
+			int bcount =0;
+			while(iterator1.hasNext()) {
+		    	Entry<Integer,Integer> pentry = iterator1.next();
+		    	Integer ph = pentry.getValue();
+		    	Integer pc = pentry.getKey();
+		    	  if(ph == htobeat){
+		    		  bestMoves[bcount] = pc;
+		    		  bcount++;
+					}
+		    }
 			
 				
-			possibleMoves.put(col, getH(copy,row));
+			int rand = (int) Math.random() * (bcount);
+			q[row] = bestMoves[rand];
+			if(row == NUM_QUEEN-1){
+				printQueens(q);
+				return;
+			}
+				
+		
 		}
-		Iterator<Entry<Integer, Integer>> iterator1 =  possibleMoves.entrySet().iterator();
-		Iterator<Entry<Integer, Integer>> iterator =  possibleMoves.entrySet().iterator();
+		System.out.print("No Solution");
 	
-	      while(iterator.hasNext()) {
-	    	  Integer pentry = (Integer)iterator.next().getValue();
-	    	  if(pentry < htobeat){
-					htobeat = pentry;
-				}
-	      }
-	      int bcount = 0;
-	    while(iterator1.hasNext()) {
-	    	Entry<Integer,Integer> pentry = iterator1.next();
-	    	Integer ph = pentry.getValue();
-	    	Integer pc = pentry.getKey();
-	    	  if(ph == htobeat){
-	    		  bestMoves[bcount] = pc;
-	    		  bcount++;
-				}
-	    }
-
-		//int max = NUM_QUEEN-row;
-	    if(row == NUM_QUEEN || bestMoves.length == 0){
-	    	System.out.println("No Solution");
-	    			return;
-	    }
-		int rand = (int) Math.random() * (bcount);//(row+(Math.random() * (max)));
-		q[row] = bestMoves[rand];
 	}
 	
 	private boolean isIn(int col,int row, int[] qu){
@@ -132,7 +134,9 @@ public class Queen{
 	private int getH(int[] q,int row){
 		int h =0,offset=0;
 
-			for(int i = 0; i<row;i++){
+			for(int i = 0; i<NUM_QUEEN;i++){
+				if(i == row)
+					continue;
 				if(q[row] == q[i]){ 
 					h+=1;
 				}
